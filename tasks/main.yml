@@ -1,0 +1,53 @@
+- name: create backup directory
+  file:
+    path: '/mnt/bckp-{{ ansible_hostname }}'
+    state: directory
+
+- name: Install required packages
+  package:
+    name: '{{ item }}'
+    state: latest
+  with_items: '{{ PACKAGES }}'
+
+- name: install rclone - make temp dir
+  file:
+    path: /tmp/rclone_setup
+    state: directory
+    mode: 0775
+
+- name: install rclone - unzip package
+  unarchive:
+    src: https://github.com/ncw/rclone/releases/download/v{{ rclone_version }}/rclone-v{{ rclone_version }}-linux-amd64.zip
+    dest: /tmp/rclone_setup
+    copy: no
+    creates: '/tmp/rclone_setup/rclone-v{{ rclone_version }}-linux-amd64'
+
+- name: install rclone - copy binary
+  copy:
+    src: /tmp/rclone_setup/rclone-v{{ rclone_version }}-linux-amd64/rclone
+    dest: /usr/sbin/rclone
+    mode: 0755
+    owner: root
+    group: root
+    remote_src: true
+
+- name: install rclone - make dir for local manpages
+  file:
+    path: /usr/share/man/man1
+    state: directory
+    mode: 0775
+    owner: root
+    group: root
+
+- name: install rclone - copy manpage
+  copy:
+    src: /tmp/rclone_setup/rclone-v{{ rclone_version }}-linux-amd64/rclone.1
+    dest: /usr/share/man/man1/rclone.1
+    mode: 0644
+    owner: root
+    group: root
+    remote_src: true
+
+- name: install rclone - install manpage
+  shell: mandb
+  changed_when: false
