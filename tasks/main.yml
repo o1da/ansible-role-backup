@@ -21,6 +21,7 @@
     dest: /tmp/rclone_setup
     copy: no
     creates: '/tmp/rclone_setup/rclone-v{{ rclone_version }}-linux-amd64'
+    validate_certs: false
 
 - name: install rclone - copy binary
   copy:
